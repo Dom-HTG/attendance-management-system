@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/Dom-HTG/attendance-management-system/config"
 	"github.com/Dom-HTG/attendance-management-system/database"
@@ -12,22 +13,29 @@ import (
 
 func main() {
 	// Load environment variables.
-	err := godotenv.Load("app.env")
+	err := godotenv.Load("cmd/api/app.env")
 	if err != nil {
 		fmt.Errorf(err.Error())
 		panic("Error loading environment variables..")
 	}
 
+	// Build DSN string.
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
+
+	openConn, _ := strconv.Atoi(os.Getenv("POOL_MAX_OPEN_CONN"))
+	idleConn, _ := strconv.Atoi(os.Getenv("POOL_MAX_IDLE_CONN"))
+	connTimeout := os.Getenv("POOL_MAX_CONN_TIMEOUT")
+
 	// this configuration will be passed into the handlers.
 	app := &config.Application{
 		DB: database.DbConfig{
-			DSN:           os.Getenv("DATABASE_DSN"),
-			MaxOpenConns:  10,
-			MaxIdleConns:  5,
-			MaxIdleTimout: "1m",
+			DSN:           dsn,
+			MaxOpenConns:  openConn,
+			MaxIdleConns:  idleConn,
+			MaxIdleTimout: connTimeout,
 		},
 		App: config.AppConfig{
-			Port: ":8080",
+			Port: os.Getenv("APP_PORT"),
 		},
 	}
 
