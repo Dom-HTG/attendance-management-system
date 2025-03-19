@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Dom-HTG/attendance-management-system/config"
 	"github.com/Dom-HTG/attendance-management-system/database"
 	"github.com/joho/godotenv"
 )
@@ -18,20 +19,20 @@ func main() {
 	}
 
 	// this configuration will be passed into the handlers.
-	app := &Application{
-		db: database.DbConfig{
+	app := &config.Application{
+		DB: database.DbConfig{
 			DSN:           os.Getenv("DATABASE_DSN"),
 			MaxOpenConns:  10,
 			MaxIdleConns:  5,
 			MaxIdleTimout: "1m",
 		},
-		app: appConfig{
-			port: ":8080",
+		App: config.AppConfig{
+			Port: ":8080",
 		},
 	}
 
 	// Start the database connection.
-	_, er := app.db.Start()
+	_, er := app.DB.Start()
 	if er != nil {
 		log.Fatalf("Error starting the database: %v", er)
 	}

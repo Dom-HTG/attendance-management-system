@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"fmt"
@@ -9,12 +9,12 @@ import (
 )
 
 type Application struct {
-	db  database.DbConfig
-	app appConfig
+	DB  database.DbConfig
+	App AppConfig
 }
 
-type appConfig struct {
-	port string
+type AppConfig struct {
+	Port string
 }
 
 // Mount method mounts the application routes and midddlewares to the gin engine.
