@@ -13,6 +13,7 @@ type Student struct {
 	LastName     string `gorm:"column:last_name"`
 	Email        string `gorm:"column:email;uniqueIndex;not null"`
 	Role         string `gorm:"column:role"`
+	Password     string `gorm:"column:password"`
 	MatricNumber int    `gorm:"uniqueIndex;not null;column:matric_number"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -26,6 +27,7 @@ type Lecturer struct {
 	LastName   string `gorm:"column:last_name"`
 	Email      string `gorm:"column:email;uniqueIndex;not null"`
 	Role       string `gorm:"column:role"`
+	Password   string `gorm:"column:password"`
 	Department string `gorm:"column:department;not null"`
 	StaffID    int    `gorm:"uniqueIndex;column:staff_id"`
 	CreatedAt  time.Time

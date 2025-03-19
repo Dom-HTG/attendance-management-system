@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Dom-HTG/attendance-management-system/database"
+	"github.com/Dom-HTG/attendance-management-system/config/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,11 +35,19 @@ func (app *Application) Mount() *gin.Engine {
 		authRoutes.POST("/refresh-token")   // Refresh access token..
 	}
 
-	// User routes.
-	userRoutes := router.Group("/api/user")
+	// Student routes.
+	studentRoutes := router.Group("/api/student")
 	{
-		userRoutes.GET("/{id}") // Retrieve user by id.
-		userRoutes.PUT("/{id}") // Update user by id.
+		studentRoutes.GET("/:id") // Retrieve student by id.
+		studentRoutes.PUT("/:id") // Update student data by id.
+	}
+
+	// Lecturer routes.
+	lecturerRoutes := router.Group("/api/lecturer")
+	{
+		lecturerRoutes.GET("/:id")              // Retrieve lecturer by id.
+		lecturerRoutes.PUT("/:id")              // Update lecturer data by id.
+		lecturerRoutes.POST("/qrcode/generate") // Generate new QR Code.
 	}
 
 	// Attendance routes.

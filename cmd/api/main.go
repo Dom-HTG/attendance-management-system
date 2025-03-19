@@ -6,8 +6,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Dom-HTG/attendance-management-system/config"
-	"github.com/Dom-HTG/attendance-management-system/database"
+	"github.com/Dom-HTG/attendance-management-system/config/app"
+	"github.com/Dom-HTG/attendance-management-system/config/database"
 	"github.com/joho/godotenv"
 )
 
