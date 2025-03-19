@@ -4,26 +4,20 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Dom-HTG/attendance-management-system/database"
 	"github.com/gin-gonic/gin"
 )
 
 type Application struct {
-	db  dbConfig
+	db  database.DbConfig
 	app appConfig
-}
-
-type dbConfig struct {
-	dsn           string
-	maxOpenConns  int
-	maxIdleConns  int
-	maxIdleTimout string
 }
 
 type appConfig struct {
 	port string
 }
 
-// Mount method mounts the application routes to the gin engine.
+// Mount method mounts the application routes and midddlewares to the gin engine.
 func (app *Application) Mount() *gin.Engine {
 	router := gin.Default()
 
@@ -59,24 +53,13 @@ func (app *Application) Mount() *gin.Engine {
 	return router
 }
 
-func Start(router *gin.Engine) (*Application, error) {
-	app := &Application{
-		db: dbConfig{
-			dsn:           os.Getenv("DATABASE_DSN"),
-			maxOpenConns:  10,
-			maxIdleConns:  5,
-			maxIdleTimout: "1m",
-		},
-		app: appConfig{
-			port: "8080",
-		},
-	}
+func (app *Application) Start(router *gin.Engine) error {
 
 	port := os.Getenv("APP_PORT")
 	if err := router.Run(port); err != nil {
-		return nil, err
+		return err
 	}
 	fmt.Printf("Application started locally at http://localhost:%d\n", port)
 
-	return app, nil
+	return nil
 }

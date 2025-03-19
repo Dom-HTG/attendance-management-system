@@ -2,6 +2,8 @@ package entities
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Student represents a student in the system.
@@ -18,6 +20,7 @@ type Student struct {
 
 // Lecturer represents a lecturer in the system.
 type Lecturer struct {
+	gorm.Model
 	ID         int    `gorm:"primaryKey"`
 	FirstName  string `gorm:"column:first_name"`
 	LastName   string `gorm:"column:last_name"`
@@ -31,6 +34,7 @@ type Lecturer struct {
 
 // Event represents a class session.
 type Event struct {
+	gorm.Model
 	ID          int       `gorm:"primaryKey"`
 	EventName   string    `gorm:"column:event_name"`
 	StartTime   time.Time `gorm:"column:start_time"`
@@ -43,6 +47,7 @@ type Event struct {
 
 // Attendance represents the overall attendance record for an event.
 type Attendance struct {
+	gorm.Model
 	ID        int              `gorm:"primaryKey"`
 	EventID   int              `gorm:"index;column:event_id"`
 	Event     Event            `gorm:"foreignKey:EventID;references:ID"`
@@ -53,6 +58,7 @@ type Attendance struct {
 
 // UserAttendance represents an individual attendance record.
 type UserAttendance struct {
+	gorm.Model
 	ID           int       `gorm:"primaryKey"`
 	AttendanceID int       `gorm:"index;column:attendance_id"`
 	StudentID    int       `gorm:"index;column:student_id"` // References the Student's ID
