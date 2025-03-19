@@ -59,7 +59,7 @@ func (app *Application) Mount() *gin.Engine {
 	return router
 }
 
-func Start(router *gin.Engine) error {
+func Start(router *gin.Engine) (*Application, error) {
 	app := &Application{
 		db: dbConfig{
 			dsn:           os.Getenv("DATABASE_DSN"),
@@ -73,6 +73,10 @@ func Start(router *gin.Engine) error {
 	}
 
 	port := os.Getenv("APP_PORT")
-	router.Run(port)
+	if err := router.Run(port); err != nil {
+		return nil, err
+	}
 	fmt.Printf("Application started locally at http://localhost:%d\n", port)
+
+	return app, nil
 }
