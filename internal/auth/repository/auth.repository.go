@@ -6,11 +6,17 @@ import (
 )
 
 type AuthRepo struct {
-	db *gorm.DB
+	DB *gorm.DB
+}
+
+func NewAuthRepo(dbInstance *gorm.DB) *AuthRepo {
+	return &AuthRepo{
+		DB: dbInstance,
+	}
 }
 
 func (auth *AuthRepo) RegisterStudent(student *auth.RegisterStudentDT0) error {
-	tx := auth.db.Create(&student)
+	tx := auth.DB.Create(&student)
 	if tx.Error != nil {
 		return tx.Error
 	}
@@ -18,7 +24,7 @@ func (auth *AuthRepo) RegisterStudent(student *auth.RegisterStudentDT0) error {
 }
 
 func (auth *AuthRepo) RegisterLecturer(lecturer *auth.RegisterLecturerDTO) error {
-	tx := auth.db.Create(&lecturer)
+	tx := auth.DB.Create(&lecturer)
 	if tx.Error != nil {
 		return tx.Error
 	}

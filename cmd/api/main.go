@@ -40,13 +40,16 @@ func main() {
 	}
 
 	// Start the database connection.
-	_, er := app.DB.Start()
+	db, er := app.DB.Start()
 	if er != nil {
 		log.Fatalf("Error starting the database: %v", er)
 	}
 
+	// Inject dependencies.
+	handler := app.InjectDependencies(db)
+
 	// Register routes and middlewares.
-	router := app.Mount()
+	router := app.Mount(handler)
 
 	// Start server.
 	if errr := app.Start(router); errr != nil {

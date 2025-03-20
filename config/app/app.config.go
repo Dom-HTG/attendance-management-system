@@ -5,7 +5,10 @@ import (
 	"os"
 
 	"github.com/Dom-HTG/attendance-management-system/config/database"
+	authRepo "github.com/Dom-HTG/attendance-management-system/internal/auth/repository"
+	authSvc "github.com/Dom-HTG/attendance-management-system/internal/auth/service"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type Application struct {
@@ -17,8 +20,12 @@ type AppConfig struct {
 	Port string
 }
 
+type Handlers struct {
+	AuthHandler *authSvc.AuthSvc
+}
+
 // Mount method mounts the application routes and midddlewares to the gin engine.
-func (app *Application) Mount() *gin.Engine {
+func (app *Application) Mount(handler *Handlers) *gin.Engine {
 	router := gin.Default()
 
 	// Base middleware stack.
@@ -28,11 +35,12 @@ func (app *Application) Mount() *gin.Engine {
 	// Auth routes.
 	authRoutes := router.Group("/api/auth")
 	{
-		authRoutes.POST("/register")        // Registers new user.
-		authRoutes.POST("/login")           // Logs in user.
-		authRoutes.POST("/forgot-password") // Sends reset password email.
-		authRoutes.POST("/logout")          // Logs out user.
-		authRoutes.POST("/refresh-token")   // Refresh access token..
+		authRoutes.POST("/register-student", handler.AuthHandler.RegisterStudent)   // Registers new student.
+		authRoutes.POST("/register-lecturer", handler.AuthHandler.RegisterLecturer) // Registers new lecturer.
+		authRoutes.POST("/login")                                                   // Logs in user.
+		authRoutes.POST("/forgot-password")                                         // Sends reset password email.
+		authRoutes.POST("/logout")                                                  // Logs out user.
+		authRoutes.POST("/refresh-token")                                           // Refresh access token..
 	}
 
 	// Student routes.
@@ -59,6 +67,16 @@ func (app *Application) Mount() *gin.Engine {
 	}
 
 	return router
+}
+
+func (app *Application) InjectDependencies(db *gorm.DB) *Handlers {
+	// auth
+	rp := authRepo.NewAuthRepo(db)
+	svc := authSvc.NewAuthSvc(rp)
+
+	return &Handlers{
+		AuthHandler: svc,
+	}
 }
 
 func (app *Application) Start(router *gin.Engine) error {

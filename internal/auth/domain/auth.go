@@ -4,8 +4,8 @@ import "github.com/gin-gonic/gin"
 
 // Repository Interface.
 type AuthRepoInterface interface {
-	RegisterStudent(student RegisterStudentDT0) error
-	RegisterLecturer(lecturer RegisterLecturerDTO) error
+	RegisterStudent(student *RegisterStudentDT0) error
+	RegisterLecturer(lecturer *RegisterLecturerDTO) error
 	// Login() error
 }
 
