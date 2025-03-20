@@ -1,5 +1,21 @@
 package auth
 
+import "github.com/gin-gonic/gin"
+
+// Repository Interface.
+type AuthRepoInterface interface {
+	RegisterStudent(student RegisterStudentDT0) error
+	RegisterLecturer(lecturer RegisterLecturerDTO) error
+	// Login() error
+}
+
+// Service Interface.
+type AuthSvcInterface interface {
+	RegisterStudent(ctx *gin.Context)
+	RegisterLecturer(ctx *gin.Context)
+	Login(ctx *gin.Context)
+}
+
 type RegisterStudentDT0 struct {
 	FirstName    string `json:"first_name"`
 	LastName     string `json:"last_name"`

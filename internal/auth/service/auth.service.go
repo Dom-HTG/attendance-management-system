@@ -3,17 +3,11 @@ package auth
 import (
 	"net/http"
 
-	"github.com/Dom-HTG/attendance-management-system/internal/auth"
+	auth "github.com/Dom-HTG/attendance-management-system/internal/auth/domain"
 	"github.com/Dom-HTG/attendance-management-system/pkg/responses"
 	"github.com/Dom-HTG/attendance-management-system/pkg/utils"
 	"github.com/gin-gonic/gin"
 )
-
-type AuthSvcInterface interface {
-	RegisterStudent(ctx *gin.Context)
-	RegisterLecturer(ctx *gin.Context)
-	Login(ctx *gin.Context)
-}
 
 type AuthSvc struct {
 	repository auth.AuthRepoInterface

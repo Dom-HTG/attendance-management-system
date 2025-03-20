@@ -5,12 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type AuthRepoInterface interface {
-	RegisterStudent(student *auth.RegisterStudentDT0) error
-	RegisterLecturer(lecturer *auth.RegisterLecturerDTO) error
-	// Login() error
-}
-
 type AuthRepo struct {
 	db *gorm.DB
 }
