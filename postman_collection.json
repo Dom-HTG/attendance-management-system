@@ -1,0 +1,160 @@
+{
+  "info": {
+    "_postman_id": "attendance-auth-system",
+    "name": "Attendance Management - Auth System",
+    "description": "End-to-end authentication system for the Attendance Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Student Registration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@student.edu\",\n  \"password\": \"securePassword123\",\n  \"matric_number\": \"STU-2024-001\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:2754/api/auth/register-student",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "2754",
+          "path": ["api", "auth", "register-student"]
+        },
+        "description": "Register a new student"
+      },
+      "response": []
+    },
+    {
+      "name": "Lecturer Registration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Smith\",\n  \"email\": \"jane.smith@lecturer.edu\",\n  \"password\": \"securePassword123\",\n  \"department\": \"Computer Science\",\n  \"staff_id\": \"STAFF-2024-001\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:2754/api/auth/register-lecturer",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "2754",
+          "path": ["api", "auth", "register-lecturer"]
+        },
+        "description": "Register a new lecturer"
+      },
+      "response": []
+    },
+    {
+      "name": "Student Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"john.doe@student.edu\",\n  \"password\": \"securePassword123\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:2754/api/auth/login-student",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "2754",
+          "path": ["api", "auth", "login-student"]
+        },
+        "description": "Login as a student"
+      },
+      "response": []
+    },
+    {
+      "name": "Lecturer Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"jane.smith@lecturer.edu\",\n  \"password\": \"securePassword123\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:2754/api/auth/login-lecturer",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "2754",
+          "path": ["api", "auth", "login-lecturer"]
+        },
+        "description": "Login as a lecturer"
+      },
+      "response": []
+    },
+    {
+      "name": "Invalid Student Registration - Missing Fields",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:2754/api/auth/register-student",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "2754",
+          "path": ["api", "auth", "register-student"]
+        },
+        "description": "Test validation - missing required fields"
+      },
+      "response": []
+    },
+    {
+      "name": "Invalid Login - Wrong Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"john.doe@student.edu\",\n  \"password\": \"wrongPassword\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:2754/api/auth/login-student",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "2754",
+          "path": ["api", "auth", "login-student"]
+        },
+        "description": "Test login with incorrect password"
+      },
+      "response": []
+    }
+  ]
+}

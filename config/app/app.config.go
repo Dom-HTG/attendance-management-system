@@ -37,7 +37,8 @@ func (app *Application) Mount(handler *Handlers) *gin.Engine {
 	{
 		authRoutes.POST("/register-student", handler.AuthHandler.RegisterStudent)   // Registers new student.
 		authRoutes.POST("/register-lecturer", handler.AuthHandler.RegisterLecturer) // Registers new lecturer.
-		authRoutes.POST("/login")                                                   // Logs in user.
+		authRoutes.POST("/login-student", handler.AuthHandler.LoginStudent)         // Logs in student.
+		authRoutes.POST("/login-lecturer", handler.AuthHandler.LoginLecturer)       // Logs in lecturer.
 		authRoutes.POST("/forgot-password")                                         // Sends reset password email.
 		authRoutes.POST("/logout")                                                  // Logs out user.
 		authRoutes.POST("/refresh-token")                                           // Refresh access token..

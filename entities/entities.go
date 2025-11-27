@@ -8,30 +8,25 @@ import (
 
 // Student represents a student in the system.
 type Student struct {
-	ID           int    `gorm:"primaryKey"`
-	FirstName    string `gorm:"column:first_name"`
-	LastName     string `gorm:"column:last_name"`
+	gorm.Model
+	FirstName    string `gorm:"column:first_name;not null"`
+	LastName     string `gorm:"column:last_name;not null"`
 	Email        string `gorm:"column:email;uniqueIndex;not null"`
-	Role         string `gorm:"column:role"`
-	Password     string `gorm:"column:password"`
-	MatricNumber int    `gorm:"uniqueIndex;not null;column:matric_number"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	Role         string `gorm:"column:role;default:'student'"`
+	Password     string `gorm:"column:password;not null"`
+	MatricNumber string `gorm:"uniqueIndex;not null;column:matric_number;type:varchar(50)"`
 }
 
 // Lecturer represents a lecturer in the system.
 type Lecturer struct {
 	gorm.Model
-	ID         int    `gorm:"primaryKey"`
-	FirstName  string `gorm:"column:first_name"`
-	LastName   string `gorm:"column:last_name"`
+	FirstName  string `gorm:"column:first_name;not null"`
+	LastName   string `gorm:"column:last_name;not null"`
 	Email      string `gorm:"column:email;uniqueIndex;not null"`
-	Role       string `gorm:"column:role"`
-	Password   string `gorm:"column:password"`
+	Role       string `gorm:"column:role;default:'lecturer'"`
+	Password   string `gorm:"column:password;not null"`
 	Department string `gorm:"column:department;not null"`
-	StaffID    int    `gorm:"uniqueIndex;column:staff_id"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	StaffID    string `gorm:"uniqueIndex;column:staff_id;not null;type:varchar(50)"`
 }
 
 // Event represents a class session.

@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: attendance-management-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - attendance-network
+
+  # Go Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: attendance-management-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Server
+      APP_PORT: "${APP_PORT}"
+      
+      # Database
+      DB_HOST: "postgres"  # Use service name instead of localhost
+      DB_USER: "${DB_USER}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_NAME: "${DB_NAME}"
+      DB_PORT: "5432"      # Internal port
+      
+      # Database Pooling
+      POOL_MAX_OPEN_CONN: "${POOL_MAX_OPEN_CONN}"
+      POOL_MAX_IDLE_CONN: "${POOL_MAX_IDLE_CONN}"
+      POOL_MAX_CONN_TIMEOUT: "${POOL_MAX_CONN_TIMEOUT}"
+      
+      # JWT
+      JWT_SECRET: "${JWT_SECRET}"
+    ports:
+      - "2754:2754"
+    volumes:
+      - .:/root/src
+    networks:
+      - attendance-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  attendance-network:
+    driver: bridge
