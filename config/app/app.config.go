@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Dom-HTG/attendance-management-system/config/database"
 	attendanceRepo "github.com/Dom-HTG/attendance-management-system/internal/attendance/repository"
@@ -95,10 +96,16 @@ func (app *Application) InjectDependencies(db *gorm.DB) *Handlers {
 func (app *Application) Start(router *gin.Engine) error {
 
 	port := os.Getenv("APP_PORT")
+	// default to :2754 if not provided
+	if port == "" {
+		port = ":2754"
+	}
 	if err := router.Run(port); err != nil {
 		return err
 	}
-	fmt.Printf("Application started locally at http://localhost:%d\n", port)
+	// trim leading ':' so we don't print 'http://localhost::2754'
+	displayPort := strings.TrimPrefix(port, ":")
+	fmt.Printf("Application started locally at http://localhost:%s\n", displayPort)
 
 	return nil
 }

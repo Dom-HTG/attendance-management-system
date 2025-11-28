@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Dom-HTG/attendance-management-system/config/app"
+	config "github.com/Dom-HTG/attendance-management-system/config/app"
 	"github.com/Dom-HTG/attendance-management-system/config/database"
 	"github.com/joho/godotenv"
 )
@@ -15,8 +15,7 @@ func main() {
 	// Load environment variables.
 	err := godotenv.Load("cmd/api/app.env")
 	if err != nil {
-		fmt.Errorf(err.Error())
-		panic("Error loading environment variables..")
+		log.Printf("Warning: could not load .env file: %v\n", err)
 	}
 
 	// Build DSN string.
