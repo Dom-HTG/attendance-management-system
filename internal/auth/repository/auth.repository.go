@@ -10,6 +10,15 @@ type AuthRepo struct {
 	DB *gorm.DB
 }
 
+type AuthRepoInterface interface {
+	RegisterStudent(student *auth.RegisterStudentDTO) error
+	RegisterLecturer(lecturer *auth.RegisterLecturerDTO) error
+	FindStudentByEmail(email string) (*auth.StudentResponse, error)
+	FindLecturerByEmail(email string) (*auth.LecturerResponse, error)
+	GetStudentByEmailWithPassword(email string) (*entities.Student, error)
+	GetLecturerByEmailWithPassword(email string) (*entities.Lecturer, error)
+}
+
 func NewAuthRepo(dbInstance *gorm.DB) *AuthRepo {
 	return &AuthRepo{
 		DB: dbInstance,

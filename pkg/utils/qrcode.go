@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/base64"
+	"image/png"
 
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -25,9 +26,8 @@ func GenerateQRCodePNG(data string, size int) (string, error) {
 	var buf bytes.Buffer
 
 	// Encode the QR code as PNG to the buffer
-	// qrcode.New returns a QRCode which can be written as PNG
-	png := qr.Image(256) // 256x256 pixel image
-	if err := png.Encode(&buf, png); err != nil {
+	qrImage := qr.Image(256) // 256x256 pixel image
+	if err := png.Encode(&buf, qrImage); err != nil {
 		return "", err
 	}
 
@@ -51,8 +51,8 @@ func GenerateQRCodePNGWithLevel(data string, level qrcode.RecoveryLevel, size in
 	var buf bytes.Buffer
 
 	// Encode the QR code as PNG to the buffer
-	png := qr.Image(256)
-	if err := png.Encode(&buf, png); err != nil {
+	qrImage := qr.Image(256)
+	if err := png.Encode(&buf, qrImage); err != nil {
 		return "", err
 	}
 

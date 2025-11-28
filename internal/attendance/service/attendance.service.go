@@ -8,6 +8,7 @@ import (
 	"github.com/Dom-HTG/attendance-management-system/entities"
 	attendance "github.com/Dom-HTG/attendance-management-system/internal/attendance/domain"
 	"github.com/Dom-HTG/attendance-management-system/internal/attendance/repository"
+	authDomain "github.com/Dom-HTG/attendance-management-system/internal/auth/domain"
 	authRepo "github.com/Dom-HTG/attendance-management-system/internal/auth/repository"
 	"github.com/Dom-HTG/attendance-management-system/pkg/middleware"
 	"github.com/Dom-HTG/attendance-management-system/pkg/utils"
@@ -41,7 +42,7 @@ func NewAttendanceSvc(attendanceRepo repository.AttendanceRepoInterface, authRep
 // Only lecturers can generate QR codes for events.
 func (as *AttendanceSvc) GenerateQRCode(ctx *gin.Context) {
 	// Get user ID and role from context (set by AuthMiddleware and RoleMiddleware)
-	lecturerID, ok := middleware.GetUserIDFromContext(ctx)
+	_, ok := middleware.GetUserIDFromContext(ctx)
 	if !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"error": "user id not found in context",
@@ -115,16 +116,21 @@ func (as *AttendanceSvc) GenerateQRCode(ctx *gin.Context) {
 	}
 
 	// Get lecturer information for the response
-	lecturer, err := as.authRepo.FindLecturerByEmail("")
+	lecturerEmail, ok := middleware.GetUserEmailFromContext(ctx)
+	if !ok {
+		lecturerEmail = "unknown@fupre.edu"
+	}
+
+	lecturerResp, err := as.authRepo.FindLecturerByEmail(lecturerEmail)
 	if err != nil {
-		// If we can't find lecturer details, just use the ID
-		lecturer = &entities.Lecturer{
+		// If we can't find lecturer details, just use a placeholder
+		lecturerResp = &authDomain.LecturerResponse{
 			FirstName: "Unknown",
 			LastName:  "Lecturer",
 		}
 	}
 
-	lecturerName := fmt.Sprintf("%s %s", lecturer.FirstName, lecturer.LastName)
+	lecturerName := fmt.Sprintf("%s %s", lecturerResp.FirstName, lecturerResp.LastName)
 
 	// Prepare response
 	response := attendance.GenerateQRCodeResponse{
