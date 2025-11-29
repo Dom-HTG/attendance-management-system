@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"github.com/Dom-HTG/attendance-management-system/config/database"
+	analyticsHandler "github.com/Dom-HTG/attendance-management-system/internal/analytics/handler"
+	analyticsRepo "github.com/Dom-HTG/attendance-management-system/internal/analytics/repository"
+	analyticsSvc "github.com/Dom-HTG/attendance-management-system/internal/analytics/service"
 	attendanceRepo "github.com/Dom-HTG/attendance-management-system/internal/attendance/repository"
 	attendanceSvc "github.com/Dom-HTG/attendance-management-system/internal/attendance/service"
 	authRepo "github.com/Dom-HTG/attendance-management-system/internal/auth/repository"
@@ -27,6 +30,7 @@ type AppConfig struct {
 type Handlers struct {
 	AuthHandler       *authSvc.AuthSvc
 	AttendanceHandler *attendanceSvc.AttendanceSvc
+	AnalyticsHandler  *analyticsHandler.AnalyticsHandler
 }
 
 // Mount method mounts the application routes and midddlewares to the gin engine.
@@ -75,6 +79,41 @@ func (app *Application) Mount(handler *Handlers) *gin.Engine {
 		attendanceRoutes.POST("/report")                                                                                                                            // Generates detailed attendance report for individual user.
 	}
 
+	// Analytics routes - all require authentication
+	analyticsRoutes := router.Group("/api/analytics")
+	analyticsRoutes.Use(middleware.AuthMiddleware())
+	{
+		// Student analytics
+		analyticsRoutes.GET("/student/:student_id", handler.AnalyticsHandler.GetStudentMetrics)           // Get student metrics
+		analyticsRoutes.GET("/student/:student_id/insights", handler.AnalyticsHandler.GetStudentInsights) // Get student insights
+
+		// Lecturer analytics (lecturer role required)
+		lecturerAnalytics := analyticsRoutes.Group("")
+		lecturerAnalytics.Use(middleware.RoleMiddleware("lecturer"))
+		{
+			lecturerAnalytics.GET("/lecturer/courses", handler.AnalyticsHandler.GetLecturerCourseMetrics)                 // Get lecturer course metrics
+			lecturerAnalytics.GET("/lecturer/course/:course_code", handler.AnalyticsHandler.GetLecturerCoursePerformance) // Get course performance
+			lecturerAnalytics.GET("/lecturer/insights", handler.AnalyticsHandler.GetLecturerInsights)                     // Get lecturer insights
+		}
+
+		// Admin analytics (admin/lecturer role required for now)
+		adminAnalytics := analyticsRoutes.Group("")
+		adminAnalytics.Use(middleware.RoleMiddleware("lecturer")) // Can be extended to "admin" role
+		{
+			adminAnalytics.GET("/admin/overview", handler.AnalyticsHandler.GetAdminOverview)                   // Get admin overview
+			adminAnalytics.GET("/admin/department/:department", handler.AnalyticsHandler.GetDepartmentMetrics) // Get department metrics
+			adminAnalytics.GET("/admin/realtime", handler.AnalyticsHandler.GetRealTimeDashboard)               // Get real-time dashboard
+		}
+
+		// Temporal, anomaly, prediction, benchmarking, and chart endpoints (all authenticated users)
+		analyticsRoutes.GET("/temporal", handler.AnalyticsHandler.GetTemporalAnalytics)                            // Get temporal analytics
+		analyticsRoutes.GET("/anomalies", handler.AnalyticsHandler.DetectAnomalies)                                // Detect anomalies
+		analyticsRoutes.GET("/predictions/student/:student_id", handler.AnalyticsHandler.PredictStudentAttendance) // Predict student attendance
+		analyticsRoutes.GET("/predictions/course/:course_code", handler.AnalyticsHandler.PredictCourseAttendance)  // Predict course attendance
+		analyticsRoutes.GET("/benchmark", handler.AnalyticsHandler.GetBenchmarkComparison)                         // Get benchmark comparison
+		analyticsRoutes.GET("/charts/:chart_type", handler.AnalyticsHandler.GetChartData)                          // Get chart data
+	}
+
 	return router
 }
 
@@ -87,9 +126,15 @@ func (app *Application) InjectDependencies(db *gorm.DB) *Handlers {
 	attendanceRepoInstance := attendanceRepo.NewAttendanceRepo(db)
 	attendanceSvcInstance := attendanceSvc.NewAttendanceSvc(attendanceRepoInstance, authRepoInstance)
 
+	// analytics
+	analyticsRepoInstance := analyticsRepo.NewAnalyticsRepo(db)
+	analyticsSvcInstance := analyticsSvc.NewAnalyticsService(analyticsRepoInstance)
+	analyticsHandlerInstance := analyticsHandler.NewAnalyticsHandler(analyticsSvcInstance)
+
 	return &Handlers{
 		AuthHandler:       authSvcInstance,
 		AttendanceHandler: attendanceSvcInstance,
+		AnalyticsHandler:  analyticsHandlerInstance,
 	}
 }
 

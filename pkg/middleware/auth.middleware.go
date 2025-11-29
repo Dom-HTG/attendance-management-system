@@ -30,9 +30,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Extract the token from the "Bearer <token>" format
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
+		// Extract the token from the "Bearer <token>" format.
+		// Use strings.Fields to tolerate extra spaces and EqualFold to accept case-insensitive "Bearer".
+		parts := strings.Fields(authHeader)
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid authorization header format. expected 'Bearer <token>'",
 			})
@@ -40,7 +41,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		token := parts[1]
+		token := strings.TrimSpace(parts[1])
 
 		// Validate the token and extract claims
 		claims, err := utils.ValidateToken(token)

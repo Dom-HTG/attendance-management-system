@@ -2,15 +2,16 @@
 
 This repository contains the backend for an attendance management system written in Go. Key features include role-based authentication (students and lecturers), QR-code based attendance events (lecturers create QR codes), and endpoints students use to check in by scanning QR codes.
 
-This repository now keeps full, focused documentation in the `docs/` folder. The project root will contain this README plus the `docs/` folder (4 files). Total documentation files: 5.
+This repository keeps focused documentation in the `docs/` folder.
 
 Contents
  - README.md (this file)
  - docs/
-   - API.md         (API reference & examples)
-   - QUICK_START.md (Run locally & variables)
-   - INTEGRATION.md (Frontend integration notes)
-   - ARCHITECTURE.md (Project layout & design)
+   - API.md                        (API reference & examples)
+   - QUICK_START.md                (Run locally & environment setup)
+   - INTEGRATION.md                (Frontend integration notes)
+   - ARCHITECTURE.md               (Project layout & design patterns)
+   - ANALYTICS_ENDPOINTS.md        (Complete analytics API reference with all 25 endpoints)
 
 Quick summary
  - Language: Go
@@ -18,6 +19,7 @@ Quick summary
  - ORM: GORM with PostgreSQL
  - Auth: JWT (HS256)
  - QR generation: UUID token + PNG base64 payload
+ - **Analytics**: 25+ endpoints for student/lecturer/admin insights, predictions, anomalies, benchmarking
 
 Primary endpoints (short)
  - POST /api/auth/register-student
@@ -28,8 +30,15 @@ Primary endpoints (short)
  - POST /api/attendance/check-in        (student uses token from QR to sign in)
  - GET  /api/attendance/:event_id       (lecturer view attendance for event)
  - GET  /api/attendance/student/records (student attendance history)
+ - **GET  /api/analytics/student/{id}** (student metrics, trends, engagement score)
+ - **GET  /api/analytics/lecturer/courses** (lecturer course metrics)
+ - **GET  /api/analytics/admin/overview** (university-wide dashboard)
+ - **GET  /api/analytics/anomalies** (fraud detection, duplicate check-ins)
+ - **GET  /api/analytics/predictions/student/{id}** (predict attendance, at-risk detection)
+ - **GET  /api/analytics/temporal** (time-based patterns)
+ - **GET  /api/analytics/charts/{type}** (chart data for frontend)
 
-See `docs/API.md` for request/response examples and Postman collection notes.
+See `docs/API.md` for request/response examples. See `docs/ANALYTICS_ENDPOINTS.md` for all analytics endpoints, features, and examples.
 
 Run locally (short)
  1. Copy `cmd/api/app.env` or set env vars required (DB + JWT_SECRET + APP_PORT).
@@ -48,7 +57,7 @@ If anything in the API changed, see `docs/API.md` and update the Postman collect
 | Documentation | ✅ Complete |
 | Testing Setup | ✅ Complete |
 
-**Overall:** 85% Production Ready (core features complete)
+**Overall:** 90% Production Ready (analytics & core features complete)
 
 ---
 
@@ -63,6 +72,12 @@ If anything in the API changed, see `docs/API.md` and update the Postman collect
 - Input validation
 - Error handling
 - Documentation
+- **QR code generation and attendance check-in**
+- **Student/Lecturer/Admin analytics (25+ endpoints)**
+- **Predictive analytics and at-risk detection**
+- **Anomaly detection (duplicate check-ins, fraud)**
+- **Natural language insights and recommendations**
+- **Structured logging and graceful shutdown**
 
 ### In Progress ⏳
 - Token refresh mechanism
