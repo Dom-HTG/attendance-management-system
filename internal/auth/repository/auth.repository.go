@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/Dom-HTG/attendance-management-system/entities"
 	auth "github.com/Dom-HTG/attendance-management-system/internal/auth/domain"
+	"github.com/Dom-HTG/attendance-management-system/pkg/logger"
 	"gorm.io/gorm"
 )
 
@@ -38,6 +39,7 @@ func (ar *AuthRepo) RegisterStudent(student *auth.RegisterStudentDTO) error {
 
 	tx := ar.DB.Create(&studentEntity)
 	if tx.Error != nil {
+		logger.Errorf("RegisterStudent DB create failed: %v", tx.Error)
 		return tx.Error
 	}
 	return nil
@@ -57,6 +59,7 @@ func (ar *AuthRepo) RegisterLecturer(lecturer *auth.RegisterLecturerDTO) error {
 
 	tx := ar.DB.Create(&lecturerEntity)
 	if tx.Error != nil {
+		logger.Errorf("RegisterLecturer DB create failed: %v", tx.Error)
 		return tx.Error
 	}
 	return nil

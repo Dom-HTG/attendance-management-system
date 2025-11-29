@@ -5,16 +5,15 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: attendance-management-db
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+    env_file:
+      - cmd/api/app.env
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,24 +29,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - cmd/api/app.env
     environment:
-      # Server
-      APP_PORT: "${APP_PORT}"
-      
-      # Database
-      DB_HOST: "postgres"  # Use service name instead of localhost
-      DB_USER: "${DB_USER}"
-      DB_PASSWORD: "${DB_PASSWORD}"
-      DB_NAME: "${DB_NAME}"
-      DB_PORT: "5432"      # Internal port
-      
-      # Database Pooling
-      POOL_MAX_OPEN_CONN: "${POOL_MAX_OPEN_CONN}"
-      POOL_MAX_IDLE_CONN: "${POOL_MAX_IDLE_CONN}"
-      POOL_MAX_CONN_TIMEOUT: "${POOL_MAX_CONN_TIMEOUT}"
-      
-      # JWT
-      JWT_SECRET: "${JWT_SECRET}"
+      # Override DB_HOST to use service name (Docker network)
+      DB_HOST: "postgres"
     ports:
       - "2754:2754"
     volumes:
@@ -59,6 +45,7 @@ services:
 volumes:
   postgres_data:
     driver: local
+
 
 networks:
   attendance-network:

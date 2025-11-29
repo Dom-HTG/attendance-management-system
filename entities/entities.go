@@ -32,36 +32,27 @@ type Lecturer struct {
 // Event represents a class session.
 type Event struct {
 	gorm.Model
-	ID          int       `gorm:"primaryKey"`
 	EventName   string    `gorm:"column:event_name"`
 	StartTime   time.Time `gorm:"column:start_time"`
 	EndTime     time.Time `gorm:"column:end_time"`
 	Venue       string    `gorm:"column:venue"`
 	QRCodeToken string    `gorm:"column:qr_code_token"` // Unique token used to generate the QR code
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
 }
 
 // Attendance represents the overall attendance record for an event.
 type Attendance struct {
 	gorm.Model
-	ID        int              `gorm:"primaryKey"`
-	EventID   int              `gorm:"index;column:event_id"`
-	Event     Event            `gorm:"foreignKey:EventID;references:ID"`
-	Records   []UserAttendance `gorm:"foreignKey:AttendanceID"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	EventID int              `gorm:"index;column:event_id"`
+	Event   Event            `gorm:"foreignKey:EventID;references:ID"`
+	Records []UserAttendance `gorm:"foreignKey:AttendanceID"`
 }
 
 // UserAttendance represents an individual attendance record.
 type UserAttendance struct {
 	gorm.Model
-	ID           int       `gorm:"primaryKey"`
 	AttendanceID int       `gorm:"index;column:attendance_id"`
 	StudentID    int       `gorm:"index;column:student_id"` // References the Student's ID
 	Student      Student   `gorm:"foreignKey:StudentID;references:ID"`
 	Status       string    `gorm:"column:status"`      // [student, lecturer]
 	MarkedTime   time.Time `gorm:"column:marked_time"` // The time when attendance was recorded
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
 }

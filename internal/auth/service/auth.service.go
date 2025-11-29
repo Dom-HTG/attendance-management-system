@@ -23,7 +23,7 @@ func NewAuthSvc(repo auth.AuthRepoInterface) *AuthSvc {
 }
 
 func (svc *AuthSvc) RegisterStudent(ctx *gin.Context) {
-	var registerUserData *auth.RegisterStudentDTO
+	var registerUserData auth.RegisterStudentDTO
 
 	if e := ctx.ShouldBindJSON(&registerUserData); e != nil {
 		responses.ApiFailure(ctx, "Unable to bind request body", http.StatusBadRequest, e)
@@ -41,7 +41,7 @@ func (svc *AuthSvc) RegisterStudent(ctx *gin.Context) {
 	registerUserData.Password = string(hash)
 
 	// Save user to database.
-	if err := svc.Repository.RegisterStudent(registerUserData); err != nil {
+	if err := svc.Repository.RegisterStudent(&registerUserData); err != nil {
 		responses.ApiFailure(ctx, "Failed to register student", http.StatusInternalServerError, err)
 		return
 	}
@@ -52,7 +52,7 @@ func (svc *AuthSvc) RegisterStudent(ctx *gin.Context) {
 }
 
 func (svc *AuthSvc) RegisterLecturer(ctx *gin.Context) {
-	var registerUserData *auth.RegisterLecturerDTO
+	var registerUserData auth.RegisterLecturerDTO
 
 	if e := ctx.ShouldBindJSON(&registerUserData); e != nil {
 		responses.ApiFailure(ctx, "Unable to bind request body", http.StatusBadRequest, e)
@@ -70,7 +70,7 @@ func (svc *AuthSvc) RegisterLecturer(ctx *gin.Context) {
 	registerUserData.Password = string(hash)
 
 	// Save user to database.
-	if err := svc.Repository.RegisterLecturer(registerUserData); err != nil {
+	if err := svc.Repository.RegisterLecturer(&registerUserData); err != nil {
 		responses.ApiFailure(ctx, "Failed to register lecturer", http.StatusInternalServerError, err)
 		return
 	}

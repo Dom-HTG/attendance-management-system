@@ -2,10 +2,10 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Dom-HTG/attendance-management-system/entities"
+	"github.com/Dom-HTG/attendance-management-system/pkg/logger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -26,7 +26,13 @@ func (conf *DbConfig) Start() (*gorm.DB, error) {
 
 	// Set pooling configuration.
 	postgresDB, err := db.DB()
-	defer postgresDB.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// DO NOT close postgresDB here: closing the underlying sql.DB will
+	// invalidate the returned *gorm.DB and cause "sql: database is closed"
+	// errors when the application later tries to use the DB connection.
 
 	postgresDB.SetMaxOpenConns(conf.MaxOpenConns)
 	postgresDB.SetMaxIdleConns(conf.MaxIdleConns)
@@ -43,19 +49,25 @@ func (conf *DbConfig) Start() (*gorm.DB, error) {
 
 	e := postgresDB.PingContext(ctx)
 	if e != nil {
+		logger.Errorf("database ping failed: %v", e)
 		return nil, e
 	}
 
-	fmt.Print("Database connection established successfully..")
+	logger.Info("Database connection established successfully")
 
-	// Migrate models.
-	db.AutoMigrate(
+	// Migrate models and report outcome
+	if err := db.AutoMigrate(
 		&entities.Student{},
 		&entities.Lecturer{},
 		&entities.Event{},
 		&entities.Attendance{},
 		&entities.UserAttendance{},
-	)
+	); err != nil {
+		logger.Errorf("AutoMigrate failed: %v", err)
+		return nil, err
+	}
+
+	logger.Info("Database migrations applied successfully")
 
 	return db, nil
 }
