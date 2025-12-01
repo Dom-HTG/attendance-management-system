@@ -1,0 +1,57 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Backend: Docker Compose Up",
+      "type": "shell",
+      "command": "docker compose up",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder:attendance-management}"
+      }
+    },
+    {
+      "label": "Backend: Go Run (dev)",
+      "type": "shell",
+      "command": "go run ./cmd/api/main.go",
+      "problemMatcher": [
+        "$go"
+      ],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder:attendance-management}"
+      }
+    },
+    {
+      "label": "Frontend: npm start",
+      "type": "shell",
+      "command": "npm install && npm start",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder:attend-ai-live}"
+      }
+    },
+    {
+      "label": "Run: Backend + Frontend",
+      "dependsOn": [
+        "Backend: Docker Compose Up",
+        "Frontend: npm start"
+      ],
+      "dependsOrder": "parallel"
+    }
+  ]
+}

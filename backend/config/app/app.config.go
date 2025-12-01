@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Dom-HTG/attendance-management-system/config/database"
 	analyticsHandler "github.com/Dom-HTG/attendance-management-system/internal/analytics/handler"
@@ -14,6 +15,7 @@ import (
 	authRepo "github.com/Dom-HTG/attendance-management-system/internal/auth/repository"
 	authSvc "github.com/Dom-HTG/attendance-management-system/internal/auth/service"
 	"github.com/Dom-HTG/attendance-management-system/pkg/middleware"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -36,6 +38,16 @@ type Handlers struct {
 // Mount method mounts the application routes and midddlewares to the gin engine.
 func (app *Application) Mount(handler *Handlers) *gin.Engine {
 	router := gin.Default()
+
+	// CORS configuration.
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Base middleware stack.
 	router.Use(gin.Logger())

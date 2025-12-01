@@ -1,0 +1,906 @@
+{
+  "info": {
+    "_postman_id": "attendance-management-analytics",
+    "name": "Attendance Management System - Complete with Analytics",
+    "description": "Complete Attendance Management System with Authentication, QR Code, and 25+ Analytics Endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:2754",
+      "type": "string"
+    },
+    {
+      "key": "student_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "lecturer_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lecturer_id",
+      "value": "5",
+      "type": "string"
+    },
+    {
+      "key": "event_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qr_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "course_code",
+      "value": "CS101",
+      "type": "string"
+    },
+    {
+      "key": "department",
+      "value": "Computer Science",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. AUTH - Authentication Endpoints",
+      "item": [
+        {
+          "name": "1.1 Register Student (Nigerian)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Chioma\",\n  \"last_name\": \"Okafor\",\n  \"email\": \"chioma.okafor@student.edu\",\n  \"password\": \"SecurePass123!\",\n  \"matric_number\": \"COS/7452/234\",\n  \"department\": \"Computer Science\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register-student",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "auth", "register-student"]
+            },
+            "description": "Register a new student account with Nigerian name and matric format COS/7XXX/XXX"
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Register Student 2 (Nigerian)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Adeyemi\",\n  \"last_name\": \"Oluwaseun\",\n  \"email\": \"adeyemi.oluwaseun@student.edu\",\n  \"password\": \"SecurePass123!\",\n  \"matric_number\": \"COS/7381/156\",\n  \"department\": \"Computer Science\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register-student",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "auth", "register-student"]
+            },
+            "description": "Register a second student for testing analytics"
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Register Student 3 (Nigerian)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Folake\",\n  \"last_name\": \"Adebayo\",\n  \"email\": \"folake.adebayo@student.edu\",\n  \"password\": \"SecurePass123!\",\n  \"matric_number\": \"COS/7629/487\",\n  \"department\": \"Computer Science\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register-student",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "auth", "register-student"]
+            },
+            "description": "Register a third student for testing analytics"
+          },
+          "response": []
+        },
+        {
+          "name": "1.4 Register Lecturer (Nigerian)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Dr. Adekunle\",\n  \"last_name\": \"Afolabi\",\n  \"email\": \"adekunle.afolabi@lecturer.edu\",\n  \"password\": \"SecurePass123!\",\n  \"department\": \"Computer Science\",\n  \"staff_id\": \"CS-STAFF-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register-lecturer",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "auth", "register-lecturer"]
+            },
+            "description": "Register a new lecturer account with Nigerian name"
+          },
+          "response": []
+        },
+        {
+          "name": "1.5 Student Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('student_token', jsonData.data.access_token);",
+                  "    pm.environment.set('student_id', jsonData.data.user_id);",
+                  "    console.log('Student token saved');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"chioma.okafor@student.edu\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login-student",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "auth", "login-student"]
+            },
+            "description": "Login as student. Token is automatically saved to student_token variable."
+          },
+          "response": []
+        },
+        {
+          "name": "1.6 Lecturer Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('lecturer_token', jsonData.data.access_token);",
+                  "    pm.environment.set('lecturer_id', jsonData.data.user_id);",
+                  "    console.log('Lecturer token saved');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"adekunle.afolabi@lecturer.edu\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login-lecturer",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "auth", "login-lecturer"]
+            },
+            "description": "Login as lecturer. Token is automatically saved to lecturer_token variable."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. QR CODE - Lecturer Endpoints",
+      "item": [
+        {
+          "name": "2.1 Generate QR Code for Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('event_id', jsonData.data.event_id);",
+                  "    pm.environment.set('qr_token', jsonData.data.qr_token);",
+                  "    console.log('Event ID and QR Token saved');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_name\": \"Introduction to Programming\",\n  \"course_code\": \"CS101\",\n  \"department\": \"Computer Science\",\n  \"venue\": \"Room 201, Engineering Building\",\n  \"start_time\": \"2025-12-01T10:00:00Z\",\n  \"end_time\": \"2025-12-01T11:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/lecturer/qrcode/generate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "lecturer", "qrcode", "generate"]
+            },
+            "description": "Generate a QR code for an attendance event. Returns QR code as base64 PNG image."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. ATTENDANCE - Student Endpoints",
+      "item": [
+        {
+          "name": "3.1 Check-In (Scan QR Code)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qr_token\": \"{{qr_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/check-in",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "attendance", "check-in"]
+            },
+            "description": "Student checks in by scanning QR code"
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Get Student Attendance Records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/student/records",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "attendance", "student", "records"]
+            },
+            "description": "Retrieve all attendance records for the authenticated student"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. ATTENDANCE - Lecturer Endpoints",
+      "item": [
+        {
+          "name": "4.1 Get Event Attendance Records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/{{event_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "attendance", "{{event_id}}"]
+            },
+            "description": "Retrieve all attendance records for a specific event"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. ANALYTICS - Student Endpoints",
+      "item": [
+        {
+          "name": "5.1 Get Student Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/student/{{student_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "student", "{{student_id}}"]
+            },
+            "description": "Get comprehensive metrics for a student including attendance rate, trends, engagement score, and at-risk status"
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 Get Student Insights",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/student/{{student_id}}/insights",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "student", "{{student_id}}", "insights"]
+            },
+            "description": "Get AI-generated insights for a student with recommendations and trend analysis"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. ANALYTICS - Lecturer Endpoints",
+      "item": [
+        {
+          "name": "6.1 Get Lecturer Course Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/lecturer/courses",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "lecturer", "courses"]
+            },
+            "description": "Get all course metrics for the authenticated lecturer"
+          },
+          "response": []
+        },
+        {
+          "name": "6.2 Get Course Performance Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/lecturer/course/{{course_code}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "lecturer", "course", "{{course_code}}"]
+            },
+            "description": "Get detailed performance metrics for a specific course"
+          },
+          "response": []
+        },
+        {
+          "name": "6.3 Get Lecturer Insights",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/lecturer/insights",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "lecturer", "insights"]
+            },
+            "description": "Get AI-generated insights for lecturer performance with recommendations"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. ANALYTICS - Admin Endpoints",
+      "item": [
+        {
+          "name": "7.1 Get Admin Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/admin/overview",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "admin", "overview"]
+            },
+            "description": "Get university-wide attendance overview with department comparisons"
+          },
+          "response": []
+        },
+        {
+          "name": "7.2 Get Department Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/admin/department/Computer%20Science",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "admin", "department", "Computer Science"]
+            },
+            "description": "Get deep-dive analytics for a specific department"
+          },
+          "response": []
+        },
+        {
+          "name": "7.3 Get Real-Time Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/admin/realtime",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "admin", "realtime"]
+            },
+            "description": "Get real-time dashboard with active sessions and live attendance data"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. ANALYTICS - Temporal & Advanced",
+      "item": [
+        {
+          "name": "8.1 Get Temporal Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/temporal?start_date=2025-11-01T00:00:00Z&end_date=2025-12-01T23:59:59Z&granularity=weekly",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "temporal"]
+            },
+            "description": "Get temporal analytics including day-of-week patterns and attendance heatmap"
+          },
+          "response": []
+        },
+        {
+          "name": "8.2 Detect Anomalies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/anomalies",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "anomalies"]
+            },
+            "description": "Detect anomalies such as duplicate check-ins or suspicious patterns"
+          },
+          "response": []
+        },
+        {
+          "name": "8.3 Predict Student Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/predictions/student/{{student_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "predictions", "student", "{{student_id}}"]
+            },
+            "description": "Get predicted attendance and risk factors for a student"
+          },
+          "response": []
+        },
+        {
+          "name": "8.4 Predict Course Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/predictions/course/CS101",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "predictions", "course", "CS101"]
+            },
+            "description": "Get predicted attendance for a course"
+          },
+          "response": []
+        },
+        {
+          "name": "8.5 Get Benchmark Comparison",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/benchmark?entity_type=student&entity_id={{student_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "benchmark"]
+            },
+            "description": "Get peer comparison and percentile ranking for a student"
+          },
+          "response": []
+        },
+        {
+          "name": "8.6 Get Chart Data - Line Trend",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/charts/line_trend?entity_type=student&entity_id={{student_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "charts", "line_trend"]
+            },
+            "description": "Get chart data for attendance trend visualization (line chart)"
+          },
+          "response": []
+        },
+        {
+          "name": "8.7 Get Chart Data - Bar Comparison",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/charts/bar_comparison?entity_type=course&entity_id=1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "charts", "bar_comparison"]
+            },
+            "description": "Get chart data for course/department comparison (bar chart)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. ERROR TESTS - Validation & Security",
+      "item": [
+        {
+          "name": "E1. Missing Required Fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register-student",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "auth", "register-student"]
+            },
+            "description": "Expected: 400 Bad Request - Missing required fields validation"
+          },
+          "response": []
+        },
+        {
+          "name": "E2. Wrong Password on Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"chioma.okafor@student.edu\",\n  \"password\": \"WrongPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login-student",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "auth", "login-student"]
+            },
+            "description": "Expected: 401 Unauthorized - Invalid credentials"
+          },
+          "response": []
+        },
+        {
+          "name": "E3. Access Protected Route Without Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_name\": \"Test Course\",\n  \"course_code\": \"TEST101\",\n  \"department\": \"Testing\",\n  \"venue\": \"Test Room\",\n  \"start_time\": \"2025-12-01T10:00:00Z\",\n  \"end_time\": \"2025-12-01T11:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/lecturer/qrcode/generate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "lecturer", "qrcode", "generate"]
+            },
+            "description": "Expected: 401 Unauthorized - Missing authentication token"
+          },
+          "response": []
+        },
+        {
+          "name": "E4. Student Cannot Generate QR Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_name\": \"Test Course\",\n  \"course_code\": \"TEST101\",\n  \"department\": \"Testing\",\n  \"venue\": \"Test Room\",\n  \"start_time\": \"2025-12-01T10:00:00Z\",\n  \"end_time\": \"2025-12-01T11:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/lecturer/qrcode/generate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "lecturer", "qrcode", "generate"]
+            },
+            "description": "Expected: 403 Forbidden - Role-based access control (student cannot generate QR)"
+          },
+          "response": []
+        },
+        {
+          "name": "E5. Invalid QR Token on Check-In",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qr_token\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/check-in",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "attendance", "check-in"]
+            },
+            "description": "Expected: 400 Bad Request - Invalid/empty QR token"
+          },
+          "response": []
+        },
+        {
+          "name": "E6. Access Analytics Without Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/student/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "student", "1"]
+            },
+            "description": "Expected: 401 Unauthorized - Analytics endpoints require authentication"
+          },
+          "response": []
+        },
+        {
+          "name": "E7. Student Access Other Student Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/student/999",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "student", "999"]
+            },
+            "description": "Expected: 403 Forbidden - Students can only view their own analytics"
+          },
+          "response": []
+        },
+        {
+          "name": "E8. Student Cannot Access Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/admin/overview",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "2754",
+              "path": ["api", "analytics", "admin", "overview"]
+            },
+            "description": "Expected: 403 Forbidden - Students cannot access admin endpoints"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
