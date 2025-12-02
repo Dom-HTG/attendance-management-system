@@ -45,6 +45,46 @@ type TrendDataPoint struct {
 
 // ===== Lecturer Analytics =====
 
+// LecturerEventsResponse represents all events created by a lecturer (NEW - Frontend requirement)
+type LecturerEventsResponse struct {
+	Events               []LecturerEventDetail `json:"events"`
+	TotalEvents          int                   `json:"total_events"`
+	TotalStudentsReached int                   `json:"total_students_reached"`
+}
+
+// LecturerEventDetail represents a single event with attendance count (NEW - Frontend requirement)
+type LecturerEventDetail struct {
+	EventID         int       `json:"event_id"`
+	CourseName      string    `json:"course_name"`
+	CourseCode      string    `json:"course_code"`
+	Department      string    `json:"department"`
+	Venue           string    `json:"venue"`
+	StartTime       time.Time `json:"start_time"`
+	EndTime         time.Time `json:"end_time"`
+	QRToken         string    `json:"qr_token"`
+	Status          string    `json:"status"` // "active" or "expired"
+	TotalAttendance int       `json:"total_attendance"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+// LecturerSummaryResponse represents lecturer dashboard summary (NEW - Frontend requirement)
+type LecturerSummaryResponse struct {
+	TotalEventsCreated    int                 `json:"total_events_created"`
+	TotalStudentsReached  int                 `json:"total_students_reached"`
+	AverageAttendanceRate float64             `json:"average_attendance_rate"`
+	SessionsThisWeek      int                 `json:"sessions_this_week"`
+	SessionsToday         int                 `json:"sessions_today"`
+	MostAttendedCourse    *MostAttendedCourse `json:"most_attended_course"`
+	AttendanceTrend       []TrendDataPoint    `json:"attendance_trend"`
+}
+
+// MostAttendedCourse represents the course with highest attendance (NEW - Frontend requirement)
+type MostAttendedCourse struct {
+	CourseCode    string  `json:"course_code"`
+	CourseName    string  `json:"course_name"`
+	AvgAttendance float64 `json:"avg_attendance"`
+}
+
 // LecturerCourseMetricsResponse represents per-course metrics for a lecturer
 type LecturerCourseMetricsResponse struct {
 	LecturerID        int             `json:"lecturer_id"`
@@ -114,17 +154,47 @@ type DurationCorrelation struct {
 
 // ===== Admin Analytics =====
 
-// AdminOverviewResponse represents university-wide metrics
+// AdminOverviewResponse represents university-wide metrics (UPDATED - Frontend requirement)
 type AdminOverviewResponse struct {
-	OverallAttendanceRate   float64               `json:"overall_attendance_rate"`
-	TotalActiveSessions     int                   `json:"total_active_sessions"`
-	TotalStudents           int                   `json:"total_students"`
-	TotalLecturers          int                   `json:"total_lecturers"`
-	DepartmentComparison    []DepartmentMetrics   `json:"department_comparison"`
-	TopPerformingCourses    []CourseMetrics       `json:"top_performing_courses"`
-	LowestPerformingCourses []CourseMetrics       `json:"lowest_performing_courses"`
-	LecturerPerformance     []LecturerPerformance `json:"lecturer_performance"`
+	TotalStudents         int           `json:"total_students"`
+	TotalLecturers        int           `json:"total_lecturers"`
+	TotalDepartments      int           `json:"total_departments"`
+	TotalEvents           int           `json:"total_events"`
+	AverageAttendanceRate float64       `json:"average_attendance_rate"`
+	ActiveSessionsNow     int           `json:"active_sessions_now"`
+	QRCodesGeneratedToday int           `json:"qr_codes_generated_today"`
+	TotalCheckInsToday    int           `json:"total_check_ins_today"`
+	SystemHealth          *SystemHealth `json:"system_health,omitempty"`
+	// Legacy fields for backward compatibility
+	OverallAttendanceRate   float64               `json:"overall_attendance_rate,omitempty"`
+	TotalActiveSessions     int                   `json:"total_active_sessions,omitempty"`
+	DepartmentComparison    []DepartmentMetrics   `json:"department_comparison,omitempty"`
+	TopPerformingCourses    []CourseMetrics       `json:"top_performing_courses,omitempty"`
+	LowestPerformingCourses []CourseMetrics       `json:"lowest_performing_courses,omitempty"`
+	LecturerPerformance     []LecturerPerformance `json:"lecturer_performance,omitempty"`
 	GeneratedAt             time.Time             `json:"generated_at"`
+}
+
+// SystemHealth represents database and system status (NEW - Frontend requirement)
+type SystemHealth struct {
+	DatabaseStatus string    `json:"database_status"`
+	LastCheckIn    time.Time `json:"last_check_in"`
+	UptimeHours    int       `json:"uptime_hours"`
+}
+
+// DepartmentStatsResponse represents per-department breakdown (NEW - Frontend requirement)
+type DepartmentStatsResponse struct {
+	Departments []DepartmentStat `json:"departments"`
+}
+
+// DepartmentStat represents statistics for a single department (NEW - Frontend requirement)
+type DepartmentStat struct {
+	Department            string  `json:"department"`
+	TotalStudents         int     `json:"total_students"`
+	TotalLecturers        int     `json:"total_lecturers"`
+	TotalEvents           int     `json:"total_events"`
+	AverageAttendanceRate float64 `json:"average_attendance_rate"`
+	TotalCheckIns         int     `json:"total_check_ins"`
 }
 
 // DepartmentMetrics represents department-level metrics

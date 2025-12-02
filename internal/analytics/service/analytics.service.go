@@ -14,12 +14,20 @@ type AnalyticsServiceInterface interface {
 	GetStudentMetrics(studentID int) (*domain.StudentMetricsResponse, error)
 	GetStudentInsights(studentID int) (*domain.InsightResponse, error)
 
-	// Lecturer analytics
+	// Lecturer analytics (NEW - Frontend requirements)
+	GetLecturerEvents(lecturerID int) (*domain.LecturerEventsResponse, error)
+	GetLecturerSummary(lecturerID int) (*domain.LecturerSummaryResponse, error)
+
+	// Lecturer analytics (EXISTING)
 	GetLecturerCourseMetrics(lecturerID int) (*domain.LecturerCourseMetricsResponse, error)
 	GetLecturerCoursePerformance(lecturerID int, courseCode string) (*domain.CoursePerformanceResponse, error)
 	GetLecturerInsights(lecturerID int) (*domain.InsightResponse, error)
 
-	// Admin analytics
+	// Admin analytics (NEW - Frontend requirements)
+	GetAdminOverviewNew() (*domain.AdminOverviewResponse, error)
+	GetDepartmentStats() (*domain.DepartmentStatsResponse, error)
+
+	// Admin analytics (EXISTING)
 	GetAdminOverview() (*domain.AdminOverviewResponse, error)
 	GetDepartmentMetrics(department string) (*domain.DepartmentDeepDiveResponse, error)
 	GetRealTimeDashboard() (*domain.RealTimeDashboardResponse, error)

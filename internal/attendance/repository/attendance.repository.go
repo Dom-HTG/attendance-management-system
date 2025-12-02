@@ -20,6 +20,9 @@ type AttendanceRepoInterface interface {
 	GetStudentAttendance(studentID int) ([]*entities.UserAttendance, error)
 	CheckIfStudentMarkedAttendance(eventID, studentID int) (bool, error)
 	GetEventWithAttendanceRecords(eventID int) (*entities.Event, []*entities.UserAttendance, error)
+
+	// Database access for PDF export
+	DB() *gorm.DB
 }
 
 // AttendanceRepo implements the AttendanceRepoInterface.
@@ -44,8 +47,8 @@ func (ar *AttendanceRepo) CreateEvent(event *entities.Event) error {
 
 // GetEventByQRToken retrieves an event by its QR token.
 func (ar *AttendanceRepo) GetEventByQRToken(qrToken string) (*entities.Event, error) {
-	var event *entities.Event
-	if err := ar.db.Where("qr_code_token = ?", qrToken).First(&event).Error; err != nil {
+	event := &entities.Event{}
+	if err := ar.db.Where("qr_code_token = ?", qrToken).First(event).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("qr code not found or invalid")
 		}
@@ -56,8 +59,8 @@ func (ar *AttendanceRepo) GetEventByQRToken(qrToken string) (*entities.Event, er
 
 // GetEventByID retrieves an event by its ID.
 func (ar *AttendanceRepo) GetEventByID(eventID int) (*entities.Event, error) {
-	var event *entities.Event
-	if err := ar.db.Where("id = ?", eventID).First(&event).Error; err != nil {
+	event := &entities.Event{}
+	if err := ar.db.Where("id = ?", eventID).First(event).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("event not found")
 		}
@@ -77,7 +80,7 @@ func (ar *AttendanceRepo) CreateAttendanceRecord(attendanceRecord *entities.User
 // GetAttendanceByEventID retrieves all attendance records for a specific event.
 func (ar *AttendanceRepo) GetAttendanceByEventID(eventID int) ([]*entities.UserAttendance, error) {
 	var records []*entities.UserAttendance
-	if err := ar.db.Where("attendance_id = ?", eventID).
+	if err := ar.db.Where("event_id = ?", eventID).
 		Preload("Student").
 		Order("marked_time ASC").
 		Find(&records).Error; err != nil {
@@ -90,6 +93,7 @@ func (ar *AttendanceRepo) GetAttendanceByEventID(eventID int) ([]*entities.UserA
 func (ar *AttendanceRepo) GetStudentAttendance(studentID int) ([]*entities.UserAttendance, error) {
 	var records []*entities.UserAttendance
 	if err := ar.db.Where("student_id = ?", studentID).
+		Preload("Student").
 		Order("marked_time DESC").
 		Find(&records).Error; err != nil {
 		return nil, errors.New("failed to retrieve student attendance: " + err.Error())
@@ -101,7 +105,7 @@ func (ar *AttendanceRepo) GetStudentAttendance(studentID int) ([]*entities.UserA
 func (ar *AttendanceRepo) CheckIfStudentMarkedAttendance(eventID, studentID int) (bool, error) {
 	var count int64
 	if err := ar.db.
-		Where("attendance_id = ? AND student_id = ?", eventID, studentID).
+		Where("event_id = ? AND student_id = ?", eventID, studentID).
 		Model(&entities.UserAttendance{}).
 		Count(&count).Error; err != nil {
 		return false, errors.New("failed to check attendance status: " + err.Error())
@@ -122,4 +126,9 @@ func (ar *AttendanceRepo) GetEventWithAttendanceRecords(eventID int) (*entities.
 	}
 
 	return event, records, nil
+}
+
+// DB returns the underlying database connection for PDF export operations
+func (ar *AttendanceRepo) DB() *gorm.DB {
+	return ar.db
 }

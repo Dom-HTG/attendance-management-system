@@ -60,8 +60,10 @@ func (conf *DbConfig) Start() (*gorm.DB, error) {
 		&entities.Student{},
 		&entities.Lecturer{},
 		&entities.Event{},
-		&entities.Attendance{},
 		&entities.UserAttendance{},
+		&entities.Admin{},
+		&entities.AuditLog{},
+		&entities.SystemSettings{},
 	); err != nil {
 		logger.Errorf("AutoMigrate failed: %v", err)
 		return nil, err

@@ -7,7 +7,7 @@ ON user_attendances(student_id, marked_time DESC);
 
 -- Index on event_id + status for course/event analytics
 CREATE INDEX IF NOT EXISTS idx_user_attendances_event_status 
-ON user_attendances(attendance_id, status);
+ON user_attendances(event_id, status);
 
 -- Index on marked_time for temporal queries
 CREATE INDEX IF NOT EXISTS idx_user_attendances_marked_time 
@@ -34,5 +34,5 @@ ON user_attendances(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_user_attendances_student_id 
 ON user_attendances(student_id);
 
-CREATE INDEX IF NOT EXISTS idx_user_attendances_attendance_id 
-ON user_attendances(attendance_id);
+CREATE INDEX IF NOT EXISTS idx_user_attendances_event_id 
+ON user_attendances(event_id);

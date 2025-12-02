@@ -1,0 +1,72 @@
+time="2025-12-01T18:06:32-08:00" level=warning msg="C:\\Users\\HP\\Desktop\\dev\\ML-backend\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+#1 [internal] load local bake definitions
+#1 reading from stdin 376B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 777B 0.1s done
+#2 DONE 0.2s
+
+#3 [internal] load metadata for docker.io/library/golang:1.24.1-alpine
+#3 ...
+
+#4 [internal] load metadata for docker.io/library/alpine:latest
+#4 DONE 2.1s
+
+#3 [internal] load metadata for docker.io/library/golang:1.24.1-alpine
+#3 DONE 3.7s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 521B 0.1s
+#5 transferring context: 523B 0.2s done
+#5 DONE 0.3s
+
+#6 [internal] load build context
+#6 transferring context: 70.37kB 0.2s done
+#6 DONE 0.4s
+
+#7 [builder 1/7] FROM docker.io/library/golang:1.24.1-alpine@sha256:43c094ad24b6ac0546c62193baeb3e6e49ce14d3250845d166c77c25f64b0386
+#7 resolve docker.io/library/golang:1.24.1-alpine@sha256:43c094ad24b6ac0546c62193baeb3e6e49ce14d3250845d166c77c25f64b0386
+#7 ...
+
+#8 [stage-1 1/5] FROM docker.io/library/alpine:latest@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412
+#8 resolve docker.io/library/alpine:latest@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412 0.5s done
+#8 DONE 0.6s
+
+#7 [builder 1/7] FROM docker.io/library/golang:1.24.1-alpine@sha256:43c094ad24b6ac0546c62193baeb3e6e49ce14d3250845d166c77c25f64b0386
+#7 resolve docker.io/library/golang:1.24.1-alpine@sha256:43c094ad24b6ac0546c62193baeb3e6e49ce14d3250845d166c77c25f64b0386 0.5s done
+#7 DONE 0.6s
+
+#9 [builder 2/7] RUN apk add --no-cache git ca-certificates tzdata
+#9 CACHED
+
+#10 [builder 3/7] WORKDIR /build
+#10 CACHED
+
+#11 [builder 4/7] COPY go.mod go.sum ./
+#11 DONE 0.6s
+
+#12 [builder 5/7] RUN go mod download
+#12 DONE 33.3s
+
+#13 [builder 6/7] COPY . .
+#13 DONE 0.7s
+
+#14 [builder 7/7] RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api
+#14 65.07 # github.com/Dom-HTG/attendance-management-system/internal/attendance/service
+#14 65.07 internal/attendance/service/pdf_export.go:61:27: student.Department undefined (type entities.Student has no field or method Department)
+#14 ERROR: process "/bin/sh -c CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api" did not complete successfully: exit code: 1
+------
+ > [builder 7/7] RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api:
+65.07 # github.com/Dom-HTG/attendance-management-system/internal/attendance/service
+65.07 internal/attendance/service/pdf_export.go:61:27: student.Department undefined (type entities.Student has no field or method Department)
+------
+Dockerfile:18
+--------------------
+  16 |     
+  17 |     # Build the application
+  18 | >>> RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api
+  19 |     
+  20 |     # Final stage
+--------------------
+failed to solve: process "/bin/sh -c CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api" did not complete successfully: exit code: 1

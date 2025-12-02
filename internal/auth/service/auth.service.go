@@ -26,7 +26,7 @@ func (svc *AuthSvc) RegisterStudent(ctx *gin.Context) {
 	var registerUserData auth.RegisterStudentDTO
 
 	if e := ctx.ShouldBindJSON(&registerUserData); e != nil {
-		responses.ApiFailure(ctx, "Unable to bind request body", http.StatusBadRequest, e)
+		responses.ApiFailure(ctx, "Invalid registration data", http.StatusBadRequest, e)
 		return
 	}
 
@@ -42,6 +42,12 @@ func (svc *AuthSvc) RegisterStudent(ctx *gin.Context) {
 
 	// Save user to database.
 	if err := svc.Repository.RegisterStudent(&registerUserData); err != nil {
+		// Check for specific errors
+		errorMsg := err.Error()
+		if errorMsg == "email already registered" || errorMsg == "matric number already registered" || errorMsg == "student already exists" {
+			responses.ApiFailure(ctx, errorMsg, http.StatusConflict, nil)
+			return
+		}
 		responses.ApiFailure(ctx, "Failed to register student", http.StatusInternalServerError, err)
 		return
 	}
@@ -55,7 +61,7 @@ func (svc *AuthSvc) RegisterLecturer(ctx *gin.Context) {
 	var registerUserData auth.RegisterLecturerDTO
 
 	if e := ctx.ShouldBindJSON(&registerUserData); e != nil {
-		responses.ApiFailure(ctx, "Unable to bind request body", http.StatusBadRequest, e)
+		responses.ApiFailure(ctx, "Invalid registration data", http.StatusBadRequest, e)
 		return
 	}
 
@@ -71,6 +77,12 @@ func (svc *AuthSvc) RegisterLecturer(ctx *gin.Context) {
 
 	// Save user to database.
 	if err := svc.Repository.RegisterLecturer(&registerUserData); err != nil {
+		// Check for specific errors
+		errorMsg := err.Error()
+		if errorMsg == "email already registered" || errorMsg == "staff ID already registered" || errorMsg == "lecturer already exists" {
+			responses.ApiFailure(ctx, errorMsg, http.StatusConflict, nil)
+			return
+		}
 		responses.ApiFailure(ctx, "Failed to register lecturer", http.StatusInternalServerError, err)
 		return
 	}
@@ -81,7 +93,7 @@ func (svc *AuthSvc) RegisterLecturer(ctx *gin.Context) {
 }
 
 func (svc *AuthSvc) LoginStudent(ctx *gin.Context) {
-	var loginData *auth.LoginStudentDTO
+	var loginData auth.LoginStudentDTO
 
 	if e := ctx.ShouldBindJSON(&loginData); e != nil {
 		responses.ApiFailure(ctx, "Unable to bind request body", http.StatusBadRequest, e)
@@ -132,7 +144,7 @@ func (svc *AuthSvc) LoginStudent(ctx *gin.Context) {
 }
 
 func (svc *AuthSvc) LoginLecturer(ctx *gin.Context) {
-	var loginData *auth.LoginLecturerDTO
+	var loginData auth.LoginLecturerDTO
 
 	if e := ctx.ShouldBindJSON(&loginData); e != nil {
 		responses.ApiFailure(ctx, "Unable to bind request body", http.StatusBadRequest, e)

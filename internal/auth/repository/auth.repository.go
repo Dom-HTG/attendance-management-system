@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/Dom-HTG/attendance-management-system/entities"
 	auth "github.com/Dom-HTG/attendance-management-system/internal/auth/domain"
 	"github.com/Dom-HTG/attendance-management-system/pkg/logger"
@@ -40,6 +43,16 @@ func (ar *AuthRepo) RegisterStudent(student *auth.RegisterStudentDTO) error {
 	tx := ar.DB.Create(&studentEntity)
 	if tx.Error != nil {
 		logger.Errorf("RegisterStudent DB create failed: %v", tx.Error)
+		// Check for duplicate key errors
+		if strings.Contains(tx.Error.Error(), "duplicate key") || strings.Contains(tx.Error.Error(), "UNIQUE constraint") {
+			if strings.Contains(tx.Error.Error(), "email") {
+				return errors.New("email already registered")
+			}
+			if strings.Contains(tx.Error.Error(), "matric_number") {
+				return errors.New("matric number already registered")
+			}
+			return errors.New("student already exists")
+		}
 		return tx.Error
 	}
 	return nil
@@ -60,6 +73,16 @@ func (ar *AuthRepo) RegisterLecturer(lecturer *auth.RegisterLecturerDTO) error {
 	tx := ar.DB.Create(&lecturerEntity)
 	if tx.Error != nil {
 		logger.Errorf("RegisterLecturer DB create failed: %v", tx.Error)
+		// Check for duplicate key errors
+		if strings.Contains(tx.Error.Error(), "duplicate key") || strings.Contains(tx.Error.Error(), "UNIQUE constraint") {
+			if strings.Contains(tx.Error.Error(), "email") {
+				return errors.New("email already registered")
+			}
+			if strings.Contains(tx.Error.Error(), "staff_id") {
+				return errors.New("staff ID already registered")
+			}
+			return errors.New("lecturer already exists")
+		}
 		return tx.Error
 	}
 	return nil

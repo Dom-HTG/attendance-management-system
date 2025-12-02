@@ -19,11 +19,19 @@ type AnalyticsRepoInterface interface {
 	GetStudentEngagementScore(studentID int) (float64, error)
 	IsStudentAtRisk(studentID int, threshold float64) (bool, error)
 
-	// Lecturer analytics
+	// Lecturer analytics (NEW - Frontend requirements)
+	GetLecturerEvents(lecturerID int) (*domain.LecturerEventsResponse, error)
+	GetLecturerSummary(lecturerID int) (*domain.LecturerSummaryResponse, error)
+
+	// Lecturer analytics (EXISTING)
 	GetLecturerCourseMetrics(lecturerID int) (*domain.LecturerCourseMetricsResponse, error)
 	GetLecturerCoursePerformance(lecturerID int, courseCode string) (*domain.CoursePerformanceResponse, error)
 
-	// Admin analytics
+	// Admin analytics (NEW - Frontend requirements)
+	GetAdminOverviewNew() (*domain.AdminOverviewResponse, error)
+	GetDepartmentStats() (*domain.DepartmentStatsResponse, error)
+
+	// Admin analytics (EXISTING)
 	GetAdminOverview() (*domain.AdminOverviewResponse, error)
 	GetDepartmentMetrics(department string) (*domain.DepartmentDeepDiveResponse, error)
 	GetRealTimeDashboard() (*domain.RealTimeDashboardResponse, error)
@@ -148,9 +156,9 @@ func (ar *AnalyticsRepo) GetStudentPerCourseRates(studentID int) ([]domain.Cours
 			COALESCE(e.event_name, 'Unknown') as course_name,
 			COUNT(ua.id) as total_sessions,
 			SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) as sessions_attended,
-			ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / COUNT(ua.id), 2) as attendance_rate
+			ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / COUNT(ua.id), 2) as attendance_rate
 		FROM user_attendances ua
-		JOIN events e ON ua.attendance_id = e.id
+		JOIN events e ON ua.event_id = e.id
 		WHERE ua.student_id = ?
 		GROUP BY e.id, e.event_name
 		ORDER BY attendance_rate DESC
@@ -172,10 +180,10 @@ func (ar *AnalyticsRepo) GetStudentAttendanceTrend(studentID int, startDate, end
 			to_char(ua.marked_time, 'YYYY-IW') as period,
 			COUNT(ua.id) as total_sessions,
 			SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) as sessions_attended,
-			ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / COUNT(ua.id), 2) as attendance_rate,
-			ROUND(CAST(EXTRACT(EPOCH FROM AVG(ua.marked_time - e.start_time)) AS INT) / 60) as average_checkin_time
+			ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / COUNT(ua.id), 2) as attendance_rate,
+			ROUND(CAST(EXTRACT(EPOCH FROM AVG(ua.marked_time - e.start_time)) / 60 AS NUMERIC), 0) as average_checkin_time
 		FROM user_attendances ua
-		JOIN events e ON ua.attendance_id = e.id
+		JOIN events e ON ua.event_id = e.id
 		WHERE ua.student_id = ? AND ua.marked_time >= ? AND ua.marked_time <= ?
 		GROUP BY period
 		ORDER BY period
@@ -197,13 +205,13 @@ func (ar *AnalyticsRepo) GetStudentEngagementScore(studentID int) (float64, erro
 	// Engagement is based on consistency + punctuality
 	query := `
 		SELECT 
-			ROUND((attendance_rate * 0.7) + (punctuality_score * 0.3), 2) as score
+			ROUND(CAST((attendance_rate * 0.7) + (punctuality_score * 0.3) AS NUMERIC), 2) as score
 		FROM (
 			SELECT
-				COALESCE(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(ua.id), 0), 0) as attendance_rate,
+				COALESCE(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(ua.id), 0), 0) as attendance_rate,
 				COALESCE(100 - (COUNT(CASE WHEN (ua.marked_time - e.start_time) > INTERVAL '5 minutes' THEN 1 END) * 100 / NULLIF(COUNT(ua.id), 0)), 100) as punctuality_score
 			FROM user_attendances ua
-			LEFT JOIN events e ON ua.attendance_id = e.id
+			LEFT JOIN events e ON ua.event_id = e.id
 			WHERE ua.student_id = ?
 		) sub
 	`
@@ -222,7 +230,7 @@ func (ar *AnalyticsRepo) IsStudentAtRisk(studentID int, threshold float64) (bool
 	}
 
 	query := `
-		SELECT COALESCE(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(ua.id), 0), 0) as attendance_rate
+		SELECT COALESCE(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(ua.id), 0), 0) as attendance_rate
 		FROM user_attendances ua
 		WHERE ua.student_id = ?
 	`
@@ -270,22 +278,36 @@ func (ar *AnalyticsRepo) GetLecturerCourseMetrics(lecturerID int) (*domain.Lectu
 func (ar *AnalyticsRepo) GetLecturerCoursePerformance(lecturerID int, courseCode string) (*domain.CoursePerformanceResponse, error) {
 	var response domain.CoursePerformanceResponse
 
+	// Get basic course metrics
+	var basicMetrics struct {
+		SessionCount int
+		StudentCount int
+		OverallRate  float64
+	}
+
 	query := `
 		SELECT 
 			COUNT(DISTINCT e.id) as session_count,
 			COUNT(DISTINCT ua.student_id) as student_count,
-			ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(ua.id), 0), 2) as overall_rate
+			ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(ua.id), 0), 2) as overall_rate
 		FROM events e
-		LEFT JOIN user_attendances ua ON e.id = ua.attendance_id
+		LEFT JOIN user_attendances ua ON e.id = ua.event_id
 		WHERE e.event_name LIKE ?
 	`
 
-	if err := ar.db.Raw(query, "%"+courseCode+"%").Scan(&response).Error; err != nil {
+	if err := ar.db.Raw(query, "%"+courseCode+"%").Scan(&basicMetrics).Error; err != nil {
 		return nil, err
 	}
 
 	response.CourseCode = courseCode
+	response.StudentCount = basicMetrics.StudentCount
+	response.OverallAttendanceRate = basicMetrics.OverallRate
 	response.GeneratedAt = time.Now()
+
+	// Initialize empty nested structs
+	response.AttendanceDistribution = domain.AttendanceDistribution{}
+	response.SessionDurationVsAttendance = []domain.DurationCorrelation{}
+
 	return &response, nil
 }
 
@@ -297,7 +319,7 @@ func (ar *AnalyticsRepo) GetAdminOverview() (*domain.AdminOverviewResponse, erro
 
 	// Overall attendance rate
 	query := `
-		SELECT ROUND(CAST(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(*), 0), 2)
+		SELECT ROUND(CAST(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(*), 0), 2)
 		FROM user_attendances
 	`
 	ar.db.Raw(query).Scan(&response.OverallAttendanceRate)
@@ -328,7 +350,7 @@ func (ar *AnalyticsRepo) GetDepartmentMetrics(department string) (*domain.Depart
 
 	// Get department-level attendance rate
 	query := `
-		SELECT ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(ua.id), 0), 2)
+		SELECT ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(ua.id), 0), 2)
 		FROM user_attendances ua
 		JOIN students s ON ua.student_id = s.id
 		WHERE s.department = ?
@@ -363,7 +385,7 @@ func (ar *AnalyticsRepo) GetRealTimeDashboard() (*domain.RealTimeDashboardRespon
 
 	// Average attendance today
 	query = `
-		SELECT ROUND(CAST(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(*), 0), 2)
+		SELECT ROUND(CAST(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(*), 0), 2)
 		FROM user_attendances
 		WHERE DATE(marked_time) = CURRENT_DATE
 	`
@@ -388,7 +410,7 @@ func (ar *AnalyticsRepo) GetTemporalAnalytics(startDate, endDate time.Time, gran
 	query := `
 		SELECT 
 			to_char(ua.marked_time, 'Day') as day_of_week,
-			ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(ua.id), 0), 2) as attendance_rate,
+			ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(ua.id), 0), 2) as attendance_rate,
 			COUNT(ua.id) as session_count
 		FROM user_attendances ua
 		WHERE ua.marked_time >= ? AND ua.marked_time <= ?
@@ -413,17 +435,17 @@ func (ar *AnalyticsRepo) DetectAnomalies() (*domain.AnomalyResponse, error) {
 	query := `
 		SELECT 
 			ua1.student_id,
-			ua1.attendance_id,
+			ua1.event_id,
 			COUNT(*) as duplicate_count
 		FROM user_attendances ua1
 		WHERE EXISTS (
 			SELECT 1 FROM user_attendances ua2
 			WHERE ua2.student_id = ua1.student_id
-			AND ua2.attendance_id = ua1.attendance_id
+			AND ua2.event_id = ua1.event_id
 			AND ABS(EXTRACT(EPOCH FROM (ua2.marked_time - ua1.marked_time))) < 60
 			AND ua2.id != ua1.id
 		)
-		GROUP BY ua1.student_id, ua1.attendance_id
+		GROUP BY ua1.student_id, ua1.event_id
 	`
 
 	var duplicates []struct {
@@ -470,7 +492,7 @@ func (ar *AnalyticsRepo) PredictStudentAttendance(studentID int) (*domain.Predic
 
 	// Simple prediction: average of last 4 weeks
 	query := `
-		SELECT ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(ua.id), 0), 2)
+		SELECT ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(ua.id), 0), 2)
 		FROM user_attendances ua
 		WHERE ua.student_id = ? AND ua.marked_time >= NOW() - INTERVAL '4 weeks'
 	`
@@ -513,7 +535,7 @@ func (ar *AnalyticsRepo) GetBenchmarkComparison(entityType string, entityID int)
 	case "student":
 		// Get student's attendance
 		query := `
-			SELECT ROUND(CAST(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(*), 0), 2)
+			SELECT ROUND(CAST(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(*), 0), 2)
 			FROM user_attendances
 			WHERE student_id = ?
 		`
@@ -521,7 +543,7 @@ func (ar *AnalyticsRepo) GetBenchmarkComparison(entityType string, entityID int)
 
 		// Get peer average
 		query = `
-			SELECT ROUND(CAST(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(*), 0), 2)
+			SELECT ROUND(CAST(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(*), 0), 2)
 			FROM user_attendances
 		`
 		ar.db.Raw(query).Scan(&response.PeerAverage)
@@ -550,14 +572,14 @@ func (ar *AnalyticsRepo) GetAttendanceRateForEntity(entityType string, entityID 
 	var rate float64
 
 	query := `
-		SELECT ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) * 100 / NULLIF(COUNT(ua.id), 0), 2)
+		SELECT ROUND(CAST(SUM(CASE WHEN ua.status = 'present' THEN 1 ELSE 0 END) AS NUMERIC) * 100 / NULLIF(COUNT(ua.id), 0), 2)
 		FROM user_attendances ua
 		WHERE ua.%s = ? AND ua.marked_time >= ? AND ua.marked_time <= ?
 	`
 
 	field := "student_id"
 	if entityType == "course" {
-		field = "attendance_id"
+		field = "event_id"
 	}
 
 	query = fmt.Sprintf(query, field)
@@ -576,7 +598,7 @@ func (ar *AnalyticsRepo) GetLateCheckInCount(studentID int, startDate, endDate t
 	query := `
 		SELECT COUNT(ua.id)
 		FROM user_attendances ua
-		JOIN events e ON ua.attendance_id = e.id
+		JOIN events e ON ua.event_id = e.id
 		WHERE ua.student_id = ? AND (ua.marked_time - e.start_time) > INTERVAL '5 minutes'
 	`
 

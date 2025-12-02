@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"time"
@@ -88,6 +89,9 @@ func (as *AttendanceSvc) GenerateQRCode(ctx *gin.Context) {
 	// Generate a unique QR token
 	qrToken := uuid.New().String()
 
+	// Get lecturer ID from context
+	lecturerID, _ := middleware.GetUserIDFromContext(ctx)
+
 	// Create the event
 	event := &entities.Event{
 		EventName:   fmt.Sprintf("%s (%s)", req.CourseName, req.CourseCode),
@@ -95,6 +99,10 @@ func (as *AttendanceSvc) GenerateQRCode(ctx *gin.Context) {
 		EndTime:     endTime,
 		Venue:       req.Venue,
 		QRCodeToken: qrToken,
+		LecturerID:  &lecturerID,
+		CourseCode:  req.CourseCode,
+		CourseName:  req.CourseName,
+		Department:  req.Department,
 	}
 
 	if err := as.attendanceRepo.CreateEvent(event); err != nil {
@@ -227,10 +235,10 @@ func (as *AttendanceSvc) CheckIn(ctx *gin.Context) {
 
 	// Create attendance record
 	attendanceRecord := &entities.UserAttendance{
-		AttendanceID: int(event.ID),
-		StudentID:    studentID,
-		Status:       "present",
-		MarkedTime:   now,
+		EventID:    int(event.ID),
+		StudentID:  studentID,
+		Status:     "present",
+		MarkedTime: now,
 	}
 
 	if err := as.attendanceRepo.CreateAttendanceRecord(attendanceRecord); err != nil {
@@ -241,18 +249,45 @@ func (as *AttendanceSvc) CheckIn(ctx *gin.Context) {
 		return
 	}
 
-	// Get student information
-	// For now, we'll fetch from context or use placeholder
+	// Get student information from database
 	userEmail, _ := middleware.GetUserEmailFromContext(ctx)
+	student, err := as.authRepo.FindStudentByEmail(userEmail)
+	if err != nil {
+		// Fallback to basic info if we can't find the student
+		student = &authDomain.StudentResponse{
+			FirstName:    "Unknown",
+			LastName:     "Student",
+			MatricNumber: "N/A",
+		}
+	}
+
+	studentFullName := fmt.Sprintf("%s %s", student.FirstName, student.LastName)
+
+	// Extract course code from event name (format: "CourseName (CourseCode)")
+	courseCode := ""
+	if len(event.EventName) > 0 {
+		// Try to extract course code from parentheses
+		if start := len(event.EventName) - 1; start > 0 {
+			for i := len(event.EventName) - 1; i >= 0; i-- {
+				if event.EventName[i] == '(' && i+1 < len(event.EventName) {
+					end := len(event.EventName)
+					if event.EventName[end-1] == ')' {
+						courseCode = event.EventName[i+1 : end-1]
+						break
+					}
+				}
+			}
+		}
+	}
 
 	response := attendance.CheckInResponse{
 		Message:      "Check-in successful",
 		Status:       "present",
 		StudentID:    studentID,
-		StudentName:  userEmail, // In a real app, fetch full name from database
-		MatricNumber: "",        // Would need to fetch from student record
+		StudentName:  studentFullName,
+		MatricNumber: student.MatricNumber,
 		CourseName:   event.EventName,
-		CourseCode:   "", // Would need to extract or store separately
+		CourseCode:   courseCode,
 		MarkedTime:   now.Format(time.RFC3339),
 	}
 
@@ -302,16 +337,40 @@ func (as *AttendanceSvc) GetEventAttendance(ctx *gin.Context) {
 		})
 	}
 
+	// Extract course code from event name (format: "CourseName (CourseCode)")
+	courseCode := ""
+	if len(event.EventName) > 0 {
+		for i := len(event.EventName) - 1; i >= 0; i-- {
+			if event.EventName[i] == '(' && i+1 < len(event.EventName) {
+				end := len(event.EventName)
+				if event.EventName[end-1] == ')' {
+					courseCode = event.EventName[i+1 : end-1]
+					break
+				}
+			}
+		}
+	}
+
+	// Get lecturer information
+	lecturerEmail, _ := middleware.GetUserEmailFromContext(ctx)
+	lecturer, err := as.authRepo.FindLecturerByEmail(lecturerEmail)
+	lecturerName := "Unknown Lecturer"
+	department := ""
+	if err == nil {
+		lecturerName = fmt.Sprintf("%s %s", lecturer.FirstName, lecturer.LastName)
+		department = lecturer.Department
+	}
+
 	response := attendance.EventAttendanceResponse{
 		Message:           "Attendance records retrieved successfully",
 		EventID:           int(event.ID),
 		CourseName:        event.EventName,
-		CourseCode:        "", // Would need to parse from EventName or store separately
-		Department:        "",
+		CourseCode:        courseCode,
+		Department:        department,
 		StartTime:         event.StartTime.Format(time.RFC3339),
 		EndTime:           event.EndTime.Format(time.RFC3339),
 		Venue:             event.Venue,
-		CreatedBy:         "",
+		CreatedBy:         lecturerName,
 		TotalPresent:      len(attendanceRecords),
 		AttendanceRecords: attendanceRecords,
 		GeneratedAt:       time.Now().Format(time.RFC3339),
@@ -354,11 +413,21 @@ func (as *AttendanceSvc) GetStudentAttendance(ctx *gin.Context) {
 		})
 	}
 
+	// Get student information from database
+	userEmail, _ := middleware.GetUserEmailFromContext(ctx)
+	student, err := as.authRepo.FindStudentByEmail(userEmail)
+	studentFullName := "Unknown Student"
+	matricNumber := "N/A"
+	if err == nil {
+		studentFullName = fmt.Sprintf("%s %s", student.FirstName, student.LastName)
+		matricNumber = student.MatricNumber
+	}
+
 	response := attendance.StudentAttendanceResponse{
 		Message:           "Student attendance records retrieved successfully",
 		StudentID:         studentID,
-		StudentName:       "", // Would need to fetch from database
-		MatricNumber:      "", // Would need to fetch from database
+		StudentName:       studentFullName,
+		MatricNumber:      matricNumber,
 		TotalEvents:       len(attendanceRecords),
 		TotalPresent:      len(attendanceRecords), // Assuming all records are "present"
 		AttendanceRecords: attendanceRecords,
@@ -366,4 +435,98 @@ func (as *AttendanceSvc) GetStudentAttendance(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
+}
+
+// ExportStudentAttendancePDFHandler handles PDF export requests for student attendance
+func (as *AttendanceSvc) ExportStudentAttendancePDFHandler(ctx *gin.Context) {
+	// Get student ID from context
+	studentID, ok := middleware.GetUserIDFromContext(ctx)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"message": "Unauthorized: user ID not found",
+		})
+		return
+	}
+
+	// Generate PDF
+	pdfBuffer, filename, err := as.ExportStudentAttendancePDF(studentID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to generate PDF report",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// Set headers for PDF download
+	ctx.Header("Content-Type", "application/pdf")
+	ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	ctx.Header("Content-Length", fmt.Sprintf("%d", pdfBuffer.Len()))
+
+	// Send PDF
+	ctx.Data(http.StatusOK, "application/pdf", pdfBuffer.Bytes())
+}
+
+// ExportLecturerAttendancePDFHandler handles PDF export requests for lecturer attendance
+func (as *AttendanceSvc) ExportLecturerAttendancePDFHandler(ctx *gin.Context) {
+	// Get lecturer ID from context
+	lecturerID, ok := middleware.GetUserIDFromContext(ctx)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"message": "Unauthorized: user ID not found",
+		})
+		return
+	}
+
+	// Check if event_id parameter is provided
+	eventIDStr := ctx.Query("event_id")
+
+	var pdfBuffer *bytes.Buffer
+	var filename string
+	var err error
+
+	if eventIDStr != "" {
+		// Export single event
+		eventID := 0
+		if _, scanErr := fmt.Sscanf(eventIDStr, "%d", &eventID); scanErr != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Invalid event_id parameter",
+			})
+			return
+		}
+
+		pdfBuffer, filename, err = as.ExportLecturerSingleEventPDF(lecturerID, eventID)
+	} else {
+		// Export all events
+		pdfBuffer, filename, err = as.ExportLecturerAllEventsPDF(lecturerID)
+	}
+
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+		message := "Failed to generate PDF report"
+
+		if err.Error() == "event not found or access denied" {
+			statusCode = http.StatusNotFound
+			message = "Event not found or access denied"
+		}
+
+		ctx.JSON(statusCode, gin.H{
+			"success": false,
+			"message": message,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// Set headers for PDF download
+	ctx.Header("Content-Type", "application/pdf")
+	ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	ctx.Header("Content-Length", fmt.Sprintf("%d", pdfBuffer.Len()))
+
+	// Send PDF
+	ctx.Data(http.StatusOK, "application/pdf", pdfBuffer.Bytes())
 }
