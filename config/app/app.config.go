@@ -116,9 +116,9 @@ func (app *Application) Mount(handler *Handlers) *gin.Engine {
 			lecturerAnalytics.GET("/lecturer/insights", handler.AnalyticsHandler.GetLecturerInsights)                     // Get lecturer insights
 		}
 
-		// Admin analytics (admin/lecturer role required for now)
+		// Admin analytics (admin/lecturer role required)
 		adminAnalytics := analyticsRoutes.Group("")
-		adminAnalytics.Use(middleware.RoleMiddleware("lecturer")) // Can be extended to "admin" role
+		adminAnalytics.Use(middleware.MultiRoleMiddleware("admin", "lecturer"))
 		{
 			// NEW - Frontend requirements
 			adminAnalytics.GET("/admin/overview", handler.AnalyticsHandler.GetAdminOverviewNew)   // Get admin overview (NEW)

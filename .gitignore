@@ -2,5 +2,6 @@ app.env
 
 # Log files
 logs/
+build.log
 
 seed-login-credentials.txt

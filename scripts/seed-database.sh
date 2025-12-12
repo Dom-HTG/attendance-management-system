@@ -281,6 +281,18 @@ echo "# Login Credentials - Generated on $(date)" > "$CREDENTIALS_FILE"
 echo "# API URL: ${API_URL}" >> "$CREDENTIALS_FILE"
 echo "" >> "$CREDENTIALS_FILE"
 
+echo "=== ADMIN ===" >> "$CREDENTIALS_FILE"
+for CRED in "${LOGIN_CREDENTIALS[@]}"; do
+    if [[ $CRED == Admin* ]]; then
+        IFS='|' read -r ROLE EMAIL PASSWORD <<< "$CRED"
+        echo "Name: System Administrator" >> "$CREDENTIALS_FILE"
+        echo "Email: $EMAIL" >> "$CREDENTIALS_FILE"
+        echo "Password: $PASSWORD" >> "$CREDENTIALS_FILE"
+        echo "Role: admin" >> "$CREDENTIALS_FILE"
+        echo "" >> "$CREDENTIALS_FILE"
+    fi
+done
+
 echo "=== LECTURER ===" >> "$CREDENTIALS_FILE"
 for CRED in "${LOGIN_CREDENTIALS[@]}"; do
     if [[ $CRED == LECTURER* ]]; then

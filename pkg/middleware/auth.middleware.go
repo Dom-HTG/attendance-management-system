@@ -94,6 +94,36 @@ func RoleMiddleware(requiredRole string) gin.HandlerFunc {
 	}
 }
 
+// MultiRoleMiddleware checks if the user has any of the specified roles
+// Usage: MultiRoleMiddleware("admin", "lecturer")
+func MultiRoleMiddleware(allowedRoles ...string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// Get the user role from the context (set by AuthMiddleware)
+		userRole, exists := ctx.Get("user_role")
+		if !exists {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"error": "user role not found in context",
+			})
+			ctx.Abort()
+			return
+		}
+
+		// Check if the user has any of the allowed roles
+		roleStr := userRole.(string)
+		for _, allowedRole := range allowedRoles {
+			if roleStr == allowedRole {
+				ctx.Next()
+				return
+			}
+		}
+
+		ctx.JSON(http.StatusForbidden, gin.H{
+			"error": "insufficient permissions",
+		})
+		ctx.Abort()
+	}
+}
+
 // GetUserIDFromContext retrieves the user ID from the context
 func GetUserIDFromContext(ctx *gin.Context) (int, bool) {
 	userID, exists := ctx.Get("user_id")
