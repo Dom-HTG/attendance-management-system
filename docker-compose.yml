@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -35,7 +33,7 @@ services:
       # Override DB_HOST to use service name (Docker network)
       DB_HOST: "postgres"
     ports:
-      - "2754:2754"
+      - "0.0.0.0:2754:2754"
     volumes:
       - .:/root/src
     networks:
